@@ -1,0 +1,224 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "d3a22777-5ea9-4769-9033-b0f4a1464c2c")
+	(paper "A4")
+	(lib_symbols)
+	(sheet
+		(at 30.48 33.02)
+		(size 40.64 41.91)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "3d649e96-2377-4a1d-ae6e-283d1931be64")
+		(property "Sheetname" "Power Supply"
+			(at 30.48 32.3084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power_supply.kicad_sch"
+			(at 30.48 75.5146 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "trace-eurorack-module"
+				(path "/d3a22777-5ea9-4769-9033-b0f4a1464c2c"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 31.75 93.98)
+		(size 40.64 40.64)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "5a7da230-43f0-4289-8294-a93b3c83fc05")
+		(property "Sheetname" "Input CH2"
+			(at 31.75 93.2684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "input-ch2.kicad_sch"
+			(at 31.75 135.2046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "trace-eurorack-module"
+				(path "/d3a22777-5ea9-4769-9033-b0f4a1464c2c"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 100.33 35.56)
+		(size 41.91 40.64)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "b4965a32-f17f-4c27-8291-a98db932c24b")
+		(property "Sheetname" "Input CH1"
+			(at 100.33 34.8484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "input-ch1.kicad_sch"
+			(at 100.33 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "trace-eurorack-module"
+				(path "/d3a22777-5ea9-4769-9033-b0f4a1464c2c"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 104.14 95.25)
+		(size 38.1 40.64)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "ff1acecd-470d-4324-821a-810761f4b18e")
+		(property "Sheetname" "Microcontroller and Display"
+			(at 104.14 94.5384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "mcu-display.kicad_sch"
+			(at 104.14 136.4746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "trace-eurorack-module"
+				(path "/d3a22777-5ea9-4769-9033-b0f4a1464c2c"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 31.75 148.59)
+		(size 41.91 39.37)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "ff1fd106-7861-4116-a9a0-3c956dcad055")
+		(property "Sheetname" "User Controls"
+			(at 31.75 147.8784 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "user-controls.kicad_sch"
+			(at 31.75 188.5446 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "trace-eurorack-module"
+				(path "/d3a22777-5ea9-4769-9033-b0f4a1464c2c"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

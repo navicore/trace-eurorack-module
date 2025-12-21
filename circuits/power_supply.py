@@ -24,10 +24,12 @@ from skidl import *  # SKiDL uses star import pattern
 # Power Nets
 # =============================================================================
 plus_12v = Net('+12V')
-minus_12v = Net('-12V')
+minus_12v_raw = Net('-12V_RAW')  # Unprotected -12V from connector
+minus_12v = Net('-12V')          # Protected -12V (after diode)
 gnd = Net('GND')
 plus_3v3 = Net('+3.3V')
-sw_node = Net('SW')  # Switching node between regulator and inductor
+sw_node = Net('SW')    # Switching node between regulator and inductor
+bst_node = Net('BST')  # Bootstrap capacitor node
 
 # Power flags to indicate power sources to ERC
 plus_12v.drive = POWER
@@ -87,9 +89,9 @@ l1 = Part('Device', 'L',
 # Pin 10 = +12V (right column, bottom)
 
 # -12V rail with reverse polarity protection
-# Diode cathode to connector, anode to -12V net
-j1[1] += d1['K']  # Connector pin 1 to diode cathode
-d1['A'] += minus_12v  # Diode anode to -12V net (protected)
+# Diode cathode to connector (raw), anode to protected -12V net
+minus_12v_raw += j1[1], d1['K']  # Connector pin 1 to diode cathode
+minus_12v += d1['A']  # Diode anode to -12V net (protected)
 
 # +12V connections
 plus_12v += j1[9], j1[10], c1[1], u1['IN'], u1['EN']
@@ -99,8 +101,8 @@ gnd += j1[2], j1[3], j1[4], j1[5], j1[6], j1[7], j1[8]
 gnd += c1[2], u1['GND'], c2[2]
 
 # Buck regulator output stage
-u1['SW'] += sw_node, c3[1], l1[1]  # SW connects to bootstrap cap and inductor
-u1['BST'] += c3[2]  # Bootstrap pin to other side of bootstrap cap
+sw_node += u1['SW'], c3[1], l1[1]  # SW connects to bootstrap cap and inductor
+bst_node += u1['BST'], c3[2]  # Bootstrap pin to other side of bootstrap cap
 
 # Output voltage rail
 l1[2] += plus_3v3  # Inductor output

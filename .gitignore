@@ -10,6 +10,7 @@ __pycache__/
 # SKiDL generated files
 *.erc
 *.log
+*_sklib.py
 
 # KiCad
 *-backups/

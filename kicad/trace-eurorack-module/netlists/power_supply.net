@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "power_supply.py")
-    (date "12/21/2025 12:20 PM")
+    (date "12/21/2025 02:10 PM")
     (tool "SKiDL (2.2.0)")
     (sheet
       (number 1)
@@ -55,16 +55,16 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "epMh4Jz1nV")
+          (name "SKiDL Tag") "fHpcyk9MpY")
         (field
-          (name "SKiDL Line") "power_supply.py:59"))
+          (name "SKiDL Line") "power_supply.py:61"))
       (libsource
         (lib "Device")
         (part "C"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "1fcdb517-8078-5140-9a2f-b82404b19b03"))
+      (tstamps "d971bb4b-f2ff-5072-a1d7-3a9ec31ac9d3"))
     (comp
       (ref "C2")
       (value "22uF")
@@ -78,16 +78,16 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "j4bDKhnKtu")
+          (name "SKiDL Tag") "SiLCcSQeKX")
         (field
-          (name "SKiDL Line") "power_supply.py:64"))
+          (name "SKiDL Line") "power_supply.py:66"))
       (libsource
         (lib "Device")
         (part "C"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "bcf7923b-9257-50ad-9012-e465170479a5"))
+      (tstamps "40798e2c-db4a-50fe-a11b-21907e35249a"))
     (comp
       (ref "C3")
       (value "100nF")
@@ -101,16 +101,16 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "_GECTBXNOB")
+          (name "SKiDL Tag") "N9lENaWEbX")
         (field
-          (name "SKiDL Line") "power_supply.py:69"))
+          (name "SKiDL Line") "power_supply.py:71"))
       (libsource
         (lib "Device")
         (part "C"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "f85c470a-762d-5e4c-874a-065bceb91ded"))
+      (tstamps "26da7436-e593-5289-9b4a-be04e15f6387"))
     (comp
       (ref "D1")
       (value "SS14")
@@ -124,16 +124,16 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "nzh0gpm2Pq")
+          (name "SKiDL Tag") "sE3B0X64Xl")
         (field
-          (name "SKiDL Line") "power_supply.py:49"))
+          (name "SKiDL Line") "power_supply.py:51"))
       (libsource
         (lib "Device")
         (part "D_Schottky"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "fcff5830-c906-5a4a-97cd-048acc91eef1"))
+      (tstamps "5cec9b13-59f1-5f74-a394-5c440e0ef63e"))
     (comp
       (ref "J1")
       (value "Eurorack_Power")
@@ -147,16 +147,16 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "Dxx6yCiQek")
+          (name "SKiDL Tag") "aSkuSW3_tr")
         (field
-          (name "SKiDL Line") "power_supply.py:44"))
+          (name "SKiDL Line") "power_supply.py:46"))
       (libsource
         (lib "Connector_Generic")
         (part "Conn_02x05_Odd_Even"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "844141b8-3e69-53ec-8df0-133e3645293d"))
+      (tstamps "36dea087-c011-5de4-a482-68f569997307"))
     (comp
       (ref "L1")
       (value "10uH")
@@ -170,16 +170,16 @@
         (field
           (name "Datasheet") "~")
         (field
-          (name "SKiDL Tag") "ht32MqWVCB")
+          (name "SKiDL Tag") "Sn3T5nbBMG")
         (field
-          (name "SKiDL Line") "power_supply.py:74"))
+          (name "SKiDL Line") "power_supply.py:76"))
       (libsource
         (lib "Device")
         (part "L"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "aadf1df0-64f8-55e7-9dce-df23c6606a16"))
+      (tstamps "112cc62c-b328-5bd3-a52a-f04bd9a60b3e"))
     (comp
       (ref "U1")
       (value "AP63203WU-7")
@@ -193,16 +193,16 @@
         (field
           (name "Datasheet") "https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf")
         (field
-          (name "SKiDL Tag") "rHNd1mjmsP")
+          (name "SKiDL Tag") "_cPEUXDc9N")
         (field
-          (name "SKiDL Line") "power_supply.py:54"))
+          (name "SKiDL Line") "power_supply.py:56"))
       (libsource
         (lib "Regulator_Switching")
         (part "AP63203WU"))
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "858aa12c-9afd-5726-ab11-5181901382ad")))
+      (tstamps "f414cc3d-a80f-5dd8-aecc-5fba53e9cabe")))
   (nets
     (net
       (code 1)
@@ -254,6 +254,30 @@
         (pintype "PASSIVE")))
     (net
       (code 4)
+      (name "-12V_RAW")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "1")
+        (pintype "PASSIVE")))
+    (net
+      (code 5)
+      (name "BST")
+      (class "Default")
+      (node
+        (ref "C3")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "6")
+        (pintype "PASSIVE")))
+    (net
+      (code 6)
       (name "GND")
       (class "Default")
       (node
@@ -296,30 +320,6 @@
         (ref "U1")
         (pin "4")
         (pintype "POWER-IN")))
-    (net
-      (code 5)
-      (name "N$1")
-      (class "Default")
-      (node
-        (ref "D1")
-        (pin "1")
-        (pintype "PASSIVE"))
-      (node
-        (ref "J1")
-        (pin "1")
-        (pintype "PASSIVE")))
-    (net
-      (code 6)
-      (name "N$2")
-      (class "Default")
-      (node
-        (ref "C3")
-        (pin "2")
-        (pintype "PASSIVE"))
-      (node
-        (ref "U1")
-        (pin "6")
-        (pintype "PASSIVE")))
     (net
       (code 7)
       (name "SW")

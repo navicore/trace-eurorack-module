@@ -1,1 +1,21 @@
+# Claude Code
 .claude/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# SKiDL generated files
+*.erc
+*.log
+
+# KiCad
+*-backups/
+*.kicad_prl
+*autosave*
+fp-info-cache
+
+# macOS
+.DS_Store

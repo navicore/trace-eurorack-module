@@ -1,552 +1,260 @@
-# KiCad Quickstart Guide for Trace Module
+# Circuit Design Workflow: SKiDL + KiCad
 
-## Project Setup
+This project uses **SKiDL** for circuit definition (schematic capture) and **KiCad** for PCB layout.
 
-### 1. Create Project Directory and Initialize
+## Why SKiDL?
+
+- **Pure Python**: Circuits defined as code, not GUI operations
+- **Version control friendly**: Clean diffs, no binary files
+- **ERC built-in**: Electrical rules checking happens at build time
+- **Reproducible**: Run the script, get the same netlist every time
+
+## Project Structure
+
+```
+euroscope/
+├── circuits/               # SKiDL circuit definitions
+│   ├── __init__.py         # Shared config (KiCad paths, etc.)
+│   ├── build.py            # Build script for all circuits
+│   └── power_supply.py     # Power supply circuit
+├── kicad/
+│   └── trace-eurorack-module/
+│       ├── netlists/       # Generated netlists (from SKiDL)
+│       ├── *.kicad_pcb     # PCB layout (manual in KiCad)
+│       └── *.kicad_pro     # KiCad project file
+├── .venv/                  # Python virtual environment
+└── requirements.txt        # Python dependencies
+```
+
+## Setup
+
+### 1. Create Virtual Environment
 
 ```bash
 cd /Users/navicore/git/navicore/euroscope
-mkdir kicad
-cd kicad
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Open KiCad → **File → New Project** → Name: `trace-eurorack-module`
+### 2. Verify KiCad Installation
 
-This creates:
-- `trace-eurorack-module.kicad_pro` (project file)
-- `trace-eurorack-module.kicad_sch` (root schematic)
-- `trace-eurorack-module.kicad_pcb` (PCB layout, for later)
-
----
-
-### 2. Set Up Hierarchical Sheets
-
-Open the schematic editor (`.kicad_sch` file).
-
-**Root sheet (main schematic):**
-- This will only contain hierarchical sheet symbols
-- Each sheet symbol links to a sub-schematic file
-
-**Create 6 hierarchical sheets:**
-
-1. **Place → Add Hierarchical Sheet** (or press `S`)
-2. Draw a rectangle for the sheet
-3. Fill in dialog:
-   - **Sheet name**: Power Supply
-   - **File name**: `power-supply.kicad_sch`
-4. Repeat for each sheet:
-   - `power-supply.kicad_sch` → Power Supply
-   - `input-ch1.kicad_sch` → Input Channel 1
-   - `input-ch2.kicad_sch` → Input Channel 2
-   - `mcu-display.kicad_sch` → Microcontroller & Display
-   - `user-controls.kicad_sch` → User Controls
-
-**Root sheet layout example:**
+SKiDL requires KiCad libraries. The default path on macOS is:
 ```
-┌─────────────────┐  ┌─────────────────┐
-│  Power Supply   │  │  Input CH1      │
-└─────────────────┘  └─────────────────┘
-
-┌─────────────────┐  ┌─────────────────┐
-│  Input CH2      │  │  MCU & Display  │
-└─────────────────┘  └─────────────────┘
-
-┌─────────────────┐
-│  User Controls  │
-└─────────────────┘
+/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols
 ```
 
-**Add hierarchical pins** to sheets (for power/signals):
-- Right-click sheet → **Edit Sheet** → **Hierarchical Pins**
-- Add: `+12V`, `-12V`, `+3.3V`, `GND` (output from power sheet)
-- Add: `ADC_CH1`, `ADC_CH2` (output from input channels)
-- These become connection points between sheets
+This is configured in `circuits/__init__.py`.
 
----
+## Building Circuits
 
-## Sheet 1: Power Supply
+### Build All Circuits
 
-### Symbols Needed
-
-Open **Add Symbol** (press `A`) and search for:
-
-#### Connectors
-- **`Conn_02x05_Odd_Even`** → Eurorack 2×5 power connector (J_PWR)
-  - Library: `Connector_Generic`
-  - Alternative: `Conn_02x05_Shrouded` (if available)
-
-#### Diodes
-- **`D_Schottky`** → Reverse polarity protection (D_POL)
-  - Library: `Device`
-  - Footprint: `Diode_SMD:D_SMA` (for SS14)
-
-#### Voltage Regulator
-- **`AP63203`** or generic **`Regulator_Switching`**
-  - Library: `Regulator_Switching` (may need to create custom symbol)
-  - If not available: Use generic symbol, annotate package in properties
-  - Footprint: `Package_TO_SOT_SMD:TSOT-23-6` (for AP63203WU-7)
-
-#### Passives
-- **`L`** → Inductor (L1, 4.7-10µH)
-  - Library: `Device`
-  - Footprint: `Inductor_SMD:L_1210_3225Metric` (or similar power inductor)
-
-- **`C`** → Capacitors (input, output, decoupling)
-  - Library: `Device`
-  - Footprint: `Capacitor_SMD:C_0805_2012Metric`
-
-- **`R`** → Resistors (if needed for regulator feedback)
-  - Library: `Device`
-  - Footprint: `Resistor_SMD:R_0805_2012Metric`
-
-#### Power Symbols
-- **`+12V`**, **`-12V`**, **`+3.3V`**, **`GND`**
-  - Library: `power`
-  - These are net labels, not physical symbols
-
-### Circuit to Draw
-
-Reference: `docs/11-schematic-design-plan.md` (Block 1, Power Supply)
-
-```
-J_PWR (2×5 connector)
-  Pin 1 (-12V) ──┬─── D_POL (Schottky) ──> -12V net (to TL074)
-                 │
-  Pin 8,9 (+12V) ┴─── U_REG (buck regulator)
-                        ├── L1 (inductor)
-                        ├── C_IN (10µF)
-                        ├── C_OUT (22µF)
-                        └──> +3.3V net (to RP2040, display, offset ref)
-
-  Pin 2,5,6,7 (GND) ──> GND net
+```bash
+source .venv/bin/activate
+python circuits/build.py
 ```
 
-**Steps:**
-1. Place J_PWR connector symbol
-2. Assign pin numbers (match Eurorack standard from design doc)
-3. Place D_POL between pin 1 and -12V net
-4. Place U_REG, L1, capacitors per buck regulator circuit
-5. Add power symbols (+12V, -12V, +3.3V, GND)
-6. Wire everything together (press `W` for wire tool)
-7. Add decoupling caps near power nets (100nF ceramics)
+This runs ERC on each circuit and generates netlists to `kicad/trace-eurorack-module/netlists/`.
 
-### Component Values & Annotations
+### Build Single Circuit
 
-- **J_PWR**: Reference designator `J1`, value `Conn_02x05`
-- **D_POL**: `D1`, value `SS14` or `1N5819`
-- **U_REG**: `U1`, value `AP63203WU-7`
-- **L1**: `L1`, value `10µH, 2A`
-- **C_IN**: `C1`, value `10µF, 16V`
-- **C_OUT**: `C2`, value `22µF, 10V`
-
-**Set component properties:**
-- Right-click symbol → **Properties**
-- Set: Value, Footprint, Datasheet (optional)
-
----
-
-## Sheet 2: Input Channel 1
-
-### Symbols Needed
-
-#### Connectors
-- **`AudioJack2_SwitchT`** → Thonkiconn jack with switching (J_IN1, J_OUT1)
-  - Library: `Connector_Audio`
-  - Footprint: (custom, or use generic `PinHeader_1x03_P2.54mm`)
-
-#### Op-Amps
-- **`TL074`** → Quad op-amp (U1)
-  - Library: `Amplifier_Operational`
-  - Footprint: `Package_SO:SOIC-14_3.9x8.7mm_P1.27mm`
-  - Use sections A and B for Channel 1
-
-#### Diodes
-- **`D_Schottky`** → Protection diodes
-  - D1, D2 (input clamps): Footprint `Diode_SMD:D_SMA` (SS14)
-  - D3, D4 (ADC clamps): Footprint `Diode_SMD:D_SOD-123` (BAT85)
-
-#### Resistors & Capacitors
-- **`R`** → All resistors (1kΩ, 100kΩ, 620kΩ, 91kΩ)
-  - Footprint: `Resistor_SMD:R_0805_2012Metric`
-- **`C`** → 100nF bypass cap
-  - Footprint: `Capacitor_SMD:C_0805_2012Metric`
-
-### Circuit to Draw
-
-Reference: `docs/11-schematic-design-plan.md` (Block 2, Input Channel)
-
-**Stage 1: Input Protection**
-```
-J_IN1 (jack) ──┬── R_PROT (1kΩ) ──┬── [to divider]
-               │                    │
-               │                 D1 ↑ (to +12V)
-               │                 D2 ↓ (to -12V)
-               │
-               └── U1B (+) (passthrough buffer)
-                    │
-                   OUT ──> J_OUT1
+```bash
+source .venv/bin/activate
+python circuits/power_supply.py
 ```
 
-**Stage 2: Voltage Divider**
-```
-[After R_PROT] ── R1 (620kΩ) ──┬── R2 (100kΩ) ── GND
-                                │
-                             [to summing amp]
-```
+## Writing Circuit Definitions
 
-**Stage 3: Offset & Summing Amplifier**
-```
-Offset Reference:
-+3.3V ── R3 (91kΩ) ──┬── R4 (100kΩ) ── GND
-                     │
-                    C1 (100nF)
-                     │
-                  [+1.73V ref]
+### Basic Structure
 
-Summing Amp:
-         R5 (100kΩ)
-Signal ──────────┬──────(+) U1A
-                 │         │
-         R6 (100kΩ)       (─) ──┐
-Offset ──────────┘         │    │
-                          OUT ──┴── [to ADC protection]
-```
+```python
+#!/usr/bin/env python3
+"""Circuit description."""
 
-**Stage 4: ADC Protection**
-```
-[U1A out] ── R7 (1kΩ) ──┬──> ADC_CH1 (to MCU sheet)
-                         │
-                      D3 ↑ (to +3.3V)
-                      D4 ↓ (to GND)
-```
+import sys
+from pathlib import Path
 
-### Component Designators & Values
+PROJECT_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-**Channel 1 specific:**
-- **J_IN1**: `J2`, value `Thonkiconn`
-- **J_OUT1**: `J3`, value `Thonkiconn`
-- **R_PROT**: `R1`, value `1kΩ`
-- **R1**: `R2`, value `620kΩ, 1%`
-- **R2**: `R3`, value `100kΩ, 1%`
-- **R3**: `R4`, value `91kΩ, 1%` (shared with Ch2, place on this sheet)
-- **R4**: `R5`, value `100kΩ, 1%` (shared)
-- **R5**: `R6`, value `100kΩ, 1%`
-- **R6**: `R7`, value `100kΩ, 1%`
-- **R7**: `R8`, value `1kΩ`
-- **C1**: `C3`, value `100nF` (offset bypass)
-- **D1**: `D2`, value `SS14`
-- **D2**: `D3`, value `SS14`
-- **D3**: `D4`, value `BAT85`
-- **D4**: `D5`, value `BAT85`
-- **U1A**: Part of `U2` (TL074, section A)
-- **U1B**: Part of `U2` (TL074, section B)
+from circuits import init_skidl, OUTPUT_DIR
 
-**Op-amp power pins (add on sheet):**
-- Pin 4 (V-): Connect to -12V + 100nF decoupling
-- Pin 11 (V+): Connect to +12V + 100nF decoupling
+init_skidl()
 
----
+from skidl import *
 
-## Sheet 3: Input Channel 2
+# Define nets
+vcc = Net('+5V')
+gnd = Net('GND')
+vcc.drive = POWER  # Tell ERC this is a power source
+gnd.drive = POWER
 
-**This is a duplicate of Channel 1** with different designators:
+# Define components
+r1 = Part('Device', 'R', value='10k',
+          footprint='Resistor_SMD:R_0805_2012Metric')
 
-- Use **U1C** and **U1D** (sections C and D of same TL074)
-- Or use second TL074 (U3) with sections A and B
-- Update all resistor/capacitor/diode designators (R9-R15, D6-D9, etc.)
-- **Share offset reference** (R3/R4/C1 from Ch1) via net labels
+# Make connections
+vcc += r1[1]
+gnd += r1[2]
 
-**Add normalling circuit:**
-- Use switched contact on J_IN2 (Thonkiconn)
-- Connect switched contact to Ch1 signal (after R_PROT)
-- When J_IN2 unplugged, Ch2 gets Ch1 signal
-
----
-
-## Sheet 4: Microcontroller & Display
-
-### Symbols Needed
-
-#### Microcontroller
-- **`Pico`** or custom **`RP2040_Pico`** symbol
-  - May need to create custom symbol for Raspberry Pi Pico
-  - Or use generic **`MCU_Module:Raspberry_Pi_Pico`** (if in library)
-  - Footprint: Through-hole or castellated module
-
-#### Display Connector
-- **`Conn_01x08`** → 8-pin SPI display header
-  - Library: `Connector_Generic`
-  - Pins: VCC, GND, SCK, MOSI, CS, DC, RST, (BL optional)
-
-### GPIO Connections to Draw
-
-Reference: `docs/11-schematic-design-plan.md` (Block 3, Microcontroller)
-
-```
-RP2040 Pico:
-  GPIO26 (ADC0) ←─ ADC_CH1 (from Ch1 sheet via hierarchical pin)
-  GPIO27 (ADC1) ←─ ADC_CH2 (from Ch2 sheet)
-
-  GPIO10 (SPI1_SCK) ──> Display SCK
-  GPIO11 (SPI1_TX)  ──> Display MOSI
-  GPIO13 ──> Display CS
-  GPIO14 ──> Display DC
-  GPIO15 ──> Display RST
-
-  GPIO16-18 ──> Encoder 1 (A, B, SW) (from controls sheet)
-  GPIO19-21 ──> Encoder 2 (A, B, SW)
-  GPIO22-23 ──> Toggles (from controls sheet)
-  GPIO6-9 ──> LEDs (red/green for each channel)
-
-  3.3V ← +3.3V net (from power sheet)
-  GND ← GND
+# Run ERC and generate netlist
+ERC()
+netlist_path = OUTPUT_DIR / 'my_circuit.net'
+generate_netlist(file_=str(netlist_path))
 ```
 
-**Add hierarchical pins:**
-- Input: `+3.3V`, `GND`, `ADC_CH1`, `ADC_CH2`
-- Output: `ENC1_A`, `ENC1_B`, `ENC1_SW`, `ENC2_A`, `ENC2_B`, `ENC2_SW`
-- Output: `TOG1`, `TOG2`, `LED1_R`, `LED1_G`, `LED2_R`, `LED2_G`
+### Key Concepts
 
-**Add decoupling caps:**
-- 100nF ceramic on +3.3V near Pico (multiple, one per power pin if bare RP2040)
+#### Parts
+```python
+# Basic part
+r1 = Part('Device', 'R', value='10k',
+          footprint='Resistor_SMD:R_0805_2012Metric')
 
----
+# Access pins by number
+r1[1]  # Pin 1
+r1[2]  # Pin 2
 
-## Sheet 5: User Controls
-
-### Symbols Needed
-
-#### Rotary Encoders
-- **`Rotary_Encoder_Switch`** → Encoder with push switch
-  - Library: `Device`
-  - Footprint: `Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm`
-
-#### Toggle Switches
-- **`SW_SPDT`** → SPDT toggle
-  - Library: `Switch`
-  - Footprint: (generic, update later with actual part footprint)
-
-#### LEDs
-- **`LED_Dual_2pin`** or **`LED_RCGB`** → Dual-color LED
-  - Library: `Device`
-  - Or use 2× **`LED`** symbols (separate red/green)
-  - Footprint: `LED_THT:LED_D5.0mm`
-
-#### Resistors
-- **`R`** → Pull-ups (10kΩ) and LED current limiting (220Ω)
-
-### Circuits to Draw
-
-**Encoder 1:**
-```
-ENC1:
-  A ──┬─── 10kΩ pull-up ──> +3.3V
-      └──> ENC1_A (to MCU sheet)
-
-  B ──┬─── 10kΩ pull-up ──> +3.3V
-      └──> ENC1_B
-
-  SW ─┬─── 10kΩ pull-up ──> +3.3V
-      └──> ENC1_SW
-
-  COM ──> GND
+# Access pins by name (for ICs)
+u1 = Part('Regulator_Switching', 'AP63203WU', ...)
+u1['IN']   # Input pin
+u1['GND']  # Ground pin
+u1['SW']   # Switch node
 ```
 
-**Toggle 1:**
-```
-TOG1 (SPDT):
-  COM ──> +3.3V
-  NO ──┬──> TOG1 (to MCU GPIO22)
-       │
-       └─── 10kΩ pull-down ──> GND
-  NC ──> (not connected)
-```
+#### Nets
+```python
+# Create named nets
+vcc = Net('+5V')
+gnd = Net('GND')
+signal = Net('SIG')
 
-**LED 1 (dual-color):**
-```
-LED1:
-  R_anode ── 220Ω ── LED1_R (from MCU GPIO6)
-  G_anode ── 220Ω ── LED1_G (from MCU GPIO7)
-  Common_cathode ──> GND
+# Mark power nets (for ERC)
+vcc.drive = POWER
+
+# Connect pins to nets
+vcc += r1[1], c1[1]  # Multiple pins to one net
+r1[2] += signal      # Single connection
 ```
 
-Repeat for Encoder 2, Toggle 2, LED 2.
+#### Connections
+```python
+# Connect multiple things to a net
+gnd += j1[2], j1[3], j1[4], c1[2], u1['GND']
 
----
+# Chain connections
+r1[2] += signal, r2[1]  # r1 pin 2 and r2 pin 1 share 'signal' net
+```
 
-## Component Libraries & Footprints
+### Finding Parts
 
-### Finding Symbols in KiCad
+Parts come from KiCad's symbol libraries. Common libraries:
 
-**Press `A` to add symbol**, then search:
+| Library | Contents |
+|---------|----------|
+| `Device` | R, C, L, LED, D, D_Schottky |
+| `Connector_Generic` | Conn_01x02, Conn_02x05_Odd_Even |
+| `Regulator_Switching` | Buck/boost regulators |
+| `Amplifier_Operational` | TL074, LM358, etc. |
+| `power` | +12V, GND, +3.3V symbols |
 
-| Component Type | Search Term | Library |
-|----------------|-------------|---------|
-| 2×5 connector | `Conn_02x05` | Connector_Generic |
-| Schottky diode | `D_Schottky` | Device |
-| TL074 op-amp | `TL074` | Amplifier_Operational |
-| Resistor | `R` | Device |
-| Capacitor | `C` | Device |
-| Inductor | `L` | Device |
-| Audio jack | `AudioJack` | Connector_Audio |
-| Encoder | `Rotary_Encoder` | Device |
-| Toggle switch | `SW_SPDT` | Switch |
-| LED | `LED` | Device |
-| Power symbols | `+12V`, `GND`, etc. | power |
+Browse libraries in KiCad's Symbol Editor, or check:
+```
+/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols/
+```
 
-### Assigning Footprints
+### Finding Footprints
 
-After placing symbols, assign footprints:
+Common footprints:
 
-**Tools → Assign Footprints** (or press `Ctrl+F`)
-
-| Component | Footprint Library:Footprint |
-|-----------|----------------------------|
+| Component | Footprint |
+|-----------|-----------|
 | 0805 resistor | `Resistor_SMD:R_0805_2012Metric` |
 | 0805 capacitor | `Capacitor_SMD:C_0805_2012Metric` |
-| SOIC-14 (TL074) | `Package_SO:SOIC-14_3.9x8.7mm_P1.27mm` |
-| SMA diode (SS14) | `Diode_SMD:D_SMA` |
-| SOD-123 diode (BAT85) | `Diode_SMD:D_SOD-123` |
-| TSOT-23-6 (AP63203) | `Package_TO_SOT_SMD:TSOT-23-6` |
-| 2×5 IDC header | `Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical` |
-| Thonkiconn jack | (custom footprint needed) |
-| PEC11 encoder | `Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm` |
+| SMA diode | `Diode_SMD:D_SMA` |
+| TSOT-23-6 | `Package_TO_SOT_SMD:TSOT-23-6` |
+| 2x5 IDC header | `Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical` |
 
-**Custom footprints needed:**
-- Thonkiconn PJ398SM (may need to create or download from Eurorack library)
-- Raspberry Pi Pico module (if not in standard library)
+## PCB Layout Workflow
 
----
+After generating netlists:
 
-## Workflow Checklist
+1. **Open KiCad project**: `kicad/trace-eurorack-module/trace-eurorack-module.kicad_pro`
 
-### Phase 1: Setup
-- [ ] Create KiCad project (`trace-eurorack-module.kicad_pro`)
-- [ ] Set up 6 hierarchical sheets
-- [ ] Add hierarchical pins to sheets for power/signal routing
+2. **Open PCB editor** (Pcbnew)
 
-### Phase 2: Draw Schematics
-- [ ] **Sheet 1: Power Supply** (start here)
-  - [ ] Draw Eurorack connector with correct pinout
-  - [ ] Add reverse polarity protection
-  - [ ] Draw buck regulator circuit
-  - [ ] Add power distribution and decoupling
+3. **Import netlist**: File → Import → Netlist
+   - Select: `kicad/trace-eurorack-module/netlists/power_supply.net`
+   - Click "Update PCB"
 
-- [ ] **Sheet 2: Input Channel 1**
-  - [ ] Draw input protection (R_PROT, D1, D2)
-  - [ ] Draw voltage divider (R1, R2)
-  - [ ] Draw offset reference (R3, R4, C1)
-  - [ ] Draw summing amplifier (U1A)
-  - [ ] Draw ADC protection (R7, D3, D4)
-  - [ ] Draw passthrough buffer (U1B)
+4. **Place components**: Arrange on board
 
-- [ ] **Sheet 3: Input Channel 2**
-  - [ ] Duplicate Channel 1 circuit
-  - [ ] Update designators
-  - [ ] Add normalling circuit
+5. **Route traces**: Connect pads per netlist
 
-- [ ] **Sheet 4: MCU & Display**
-  - [ ] Place Raspberry Pi Pico symbol
-  - [ ] Connect ADC inputs (GPIO26, 27)
-  - [ ] Connect SPI display (GPIO10-15)
-  - [ ] Add decoupling capacitors
+6. **Run DRC**: Design Rules Check
 
-- [ ] **Sheet 5: User Controls**
-  - [ ] Draw encoders with pull-ups
-  - [ ] Draw toggles with pull-downs
-  - [ ] Draw LEDs with current limiting
+7. **Generate Gerbers**: For PCB fabrication
 
-### Phase 3: Validation
-- [ ] Annotate all components (Tools → Annotate Schematic)
-- [ ] Assign footprints to all components
-- [ ] Run ERC (Inspect → Electrical Rules Checker)
-- [ ] Fix all errors and warnings
-- [ ] Add labels and documentation text
+## Current Circuits
 
-### Phase 4: Output
-- [ ] Generate BOM (Tools → Generate BOM)
-- [ ] Generate netlist for PCB (File → Export → Netlist)
-- [ ] Review BOM against parts sourcing checklist
-- [ ] Commit schematic files to git
+### power_supply.py
 
----
+Converts Eurorack +12V to +3.3V for the RP2040.
 
-## Tips & Best Practices
+**Components:**
+- J1: 2x5 Eurorack power connector
+- D1: SS14 Schottky (reverse polarity protection)
+- U1: AP63203WU-7 buck regulator
+- C1: 10µF input capacitor
+- C2: 22µF output capacitor
+- C3: 100nF bootstrap capacitor
+- L1: 10µH inductor
 
-### Net Labels vs. Hierarchical Pins
-- **Net labels** (press `L`): Connect signals within a sheet
-- **Hierarchical pins**: Connect signals between sheets
-- **Global labels** (press `Ctrl+L`): Connect signals across all sheets (use for power: +12V, -12V, +3.3V, GND)
+**Nets:**
+- +12V: From Eurorack power
+- GND: Common ground
+- +3.3V: Regulated output
+- -12V: Protected (diode blocks reverse polarity)
+- SW: Buck regulator switch node
 
-### Power Symbols
-- Use power symbols (`+12V`, `-12V`, `+3.3V`, `GND`) instead of wires everywhere
-- Makes schematic cleaner and easier to read
-- Power symbols are implicitly connected (no wires needed)
+## Adding New Circuits
 
-### Component Values
-- Set value AND footprint for every component
-- Use consistent notation (e.g., `100kΩ, 1%` not `100k`)
-- Add manufacturer part number in "MPN" field (for BOM generation)
+1. Create `circuits/new_circuit.py` following the template above
+2. Add to `CIRCUITS` list in `circuits/build.py`
+3. Run `python circuits/build.py`
+4. Import netlist into KiCad PCB
 
-### Wire Routing
-- Keep wires straight (horizontal/vertical, avoid diagonals)
-- Use junction dots (automatic) where wires cross/connect
-- Press `K` to end a wire segment, `W` to start new wire
+## Troubleshooting
 
-### Saving Work
-- Save often (`Ctrl+S`)
-- KiCad auto-saves, but manual saves are safer
-- Commit to git after completing each sheet
+### "No module named 'circuits'"
+Make sure you're running from the project root:
+```bash
+cd /Users/navicore/git/navicore/euroscope
+python circuits/power_supply.py
+```
 
-### Checking Your Work
-- Zoom in/out with mouse wheel
-- Pan with middle mouse button (or scroll bars)
-- Use **Highlight Net** (right-click wire → Highlight Net) to trace connections
-- Run ERC early and often (catches mistakes before PCB layout)
+### ERC Warnings: "Insufficient drive current"
+Add power flags to power nets:
+```python
+vcc = Net('+5V')
+vcc.drive = POWER
+```
 
----
+### ERC Warnings: "Only one pin attached to net"
+Normal for unused nets (like -12V protection). Can be ignored if intentional.
 
-## Common Mistakes to Avoid
-
-1. **Forgetting power pins on ICs** → TL074 needs pins 4 and 11 connected
-2. **Wrong diode polarity** → Check cathode (marked end) orientation
-3. **Missing decoupling caps** → Add 100nF near every IC power pin
-4. **Incorrect Eurorack pinout** → Pin 1 is -12V (red stripe), verify before drawing
-5. **GPIO conflicts** → Double-check GPIO assignments match design doc
-6. **Forgetting pull-ups/pull-downs** → Encoders and toggles need these
-7. **Wrong footprint size** → Verify 0805 vs 0603 vs 1206 before assigning
-
----
-
-## Next Steps After Schematic Complete
-
-1. **Run final ERC** → Fix all errors (warnings optional but review them)
-2. **Generate BOM** → Compare against `docs/10-parts-sourcing-checklist.md`
-3. **Export netlist** → This feeds into PCB layout
-4. **Review with design doc** → Make sure nothing was missed
-5. **Commit to git** → Save your work!
-6. **Start PCB layout** → Import netlist into `.kicad_pcb` file
-
----
+### "KICAD8_SYMBOL_DIR environment variable is missing"
+The `init_skidl()` function sets this. Make sure to call it before importing from skidl:
+```python
+from circuits import init_skidl, OUTPUT_DIR
+init_skidl()
+from skidl import *
+```
 
 ## Resources
 
-- **KiCad Documentation**: https://docs.kicad.org/
-- **Schematic Editor Manual**: https://docs.kicad.org/7.0/en/eeschema/eeschema.html
-- **ModWiggler DIY Forum**: https://modwiggler.com/forum/viewforum.php?f=17
-- **Design Reference**: `docs/11-schematic-design-plan.md`
-
----
-
-## Ready to Start!
-
-**Recommended order:**
-1. Open KiCad, create project
-2. Set up hierarchical sheets
-3. Start with **Power Supply sheet** (easiest, foundational)
-4. Move to **Input Channel 1** (most complex, do once)
-5. Duplicate to **Input Channel 2** (quick)
-6. Add **MCU & Display** (straightforward)
-7. Finish with **User Controls** (simple)
-
-Good luck! Reference the schematic design plan (`docs/11-schematic-design-plan.md`) for all component values and connections.
+- [SKiDL Documentation](https://devbisme.github.io/skidl/)
+- [SKiDL GitHub](https://github.com/devbisme/skidl)
+- [KiCad Documentation](https://docs.kicad.org/)
+- Project design docs: `docs/11-schematic-design-plan.md`

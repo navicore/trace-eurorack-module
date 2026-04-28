@@ -1,3 +1,8 @@
+<!-- ghmig:moved -->
+> **This repository has moved to [https://git.navicore.tech/navicore/trace-eurorack-module](https://git.navicore.tech/navicore/trace-eurorack-module).**
+>
+> The GitHub copy is archived and no longer maintained.
+
 # Trace
 
 **A DIY 24HP Eurorack Oscilloscope**
